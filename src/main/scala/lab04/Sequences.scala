@@ -27,11 +27,20 @@ object Sequences:
         case Cons(_, t)            => t.filter(pred)
         case Nil()                 => Nil()
 
+      def concat(other: Sequence[A]): Sequence[A] = s match
+        case Cons(head, tail) => Cons(head, tail.concat(other))
+        case Nil() => other
+
+      def flatMap[B](mapper: A => Sequence[B]): Sequence[B] = s match
+        case Cons(head, tail) => mapper(head).concat(tail.flatMap(mapper))
+        case Nil() => Nil()
+
 @main def trySequences() =
   import Sequences.*
   import Sequence.*
   
   val seq = Cons(10, Cons(20, Cons(30, Nil())))
-  println(Sequence.sum(seq)) // 60
-  println(seq.filter(_ >= 20).map(_ + 1).sum) // 21+31 = 52
-  println(sum(map(filter(seq)(_ >= 20))(_ + 1))) // equally possible
+  println(Sequence.sum(seq))
+  println(seq.filter(_ >= 20).map(_ + 1).sum)
+  println(sum(map(filter(seq)(_ >= 20))(_ + 1)))
+  println(seq.flatMap(x => Cons(x, Cons(x + 1, Nil()))))
