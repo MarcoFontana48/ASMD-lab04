@@ -1,25 +1,51 @@
 # Operational Task
 
 ## Verifica delle proprietà del metodo `filter`
-La proprietà `filterAxioms` verifica tre casi fondamentali per il metodo `filter`:
-- caso di sequenza vuota
-- caso in cui la 'head' della sequenza soddisfa il predicato e deve essere inclusa nel risultato, seguita da una chiamata ricorsiva su 'tail'
-- caso in cui la 'head' della sequenza non soddisfa il predicato e non deve essere inclusa nel risultato, seguita da una chiamata ricorsiva su 'tail'
+La proprietà `filterAxioms` verifica il caso di lista vuota che deve restituire lista vuota e il caso in cui il predicato corrisponda al valore passato e il tal caso mantenerlo.
 
 ## Verifica delle proprietà del metodo `sum`
-La proprietà `sumAxioms` verifica due casi fondamentali per il metodo `sum`:
-- caso di sequenza non vuota, la somma deve essere uguale a 'head' più chiamata ricorsiva della 'tail'
-- caso di sequenza vuota, la somma deve essere zero
+La proprietà `sumAxioms` verifica il caso di sequenza non vuota, in cui la somma deve essere uguale a 'head' più chiamata ricorsiva della 'tail', ed il caso di sequenza vuota, dove la somma deve essere zero.
 
 ## Verifica delle proprietà del metodo `concat`
-La proprietà `concatAxioms` verifica due casi fondamentali per il metodo `concat`:
-- caso di una sequenza vuota e l'altra no: la concatenazione deve essere uguale alla sequenza non vuota
-- caso di sequenze non vuote: la concatenazione deve essere uguale alla 'head' della prima sequenza concatenata con la chiamata ricorsiva della 'tail' della prima sequenza e la seconda sequenza
+La proprietà `concatAxioms` verifica il caso di una sequenza vuota e l'altra no: la concatenazione deve essere uguale alla sequenza non vuota; ed il caso di sequenze non vuote: la concatenazione deve essere uguale alla 'head' della prima sequenza concatenata con la chiamata ricorsiva della 'tail' della prima sequenza e la seconda sequenza
 
 ## Verifica delle proprietà del metodo `flatMap`
-La proprietà `flatMapAxioms` verifica due casi fondamentali per il metodo `flatMap`:
-- caso di una sequenza vuota: l'applicazione di flatMap a una sequenza vuota restituisce sempre una sequenza vuota
-- caso di una sequenza non vuota: l'applicazione di flatMap a una sequenza non vuota applica la funzione alla 'head' e concatena il risultato con il flatMap della 'tail'.
+La proprietà `flatMapAxioms` verifica il caso di una sequenza vuota: l'applicazione di flatMap a una sequenza vuota restituisce sempre una sequenza vuota; ed il caso di una sequenza non vuota: l'applicazione di flatMap a una sequenza non vuota applica la funzione alla 'head' e concatena il risultato con il flatMap della 'tail'.
+
+```scala 3
+  // check axioms, universally
+  property("mapAxioms") =
+    forAll: (seq: Sequence[Int], f: Int => Int) =>
+      //println(seq); println(f(10)) // inspect what's using
+      (seq, f) match
+        case (Nil(), f) =>  map(Nil())(f) == Nil()
+        case (Cons(h, t), f) => map(Cons(h, t))(f) == Cons(f(h), map(t)(f))
+
+  property("filterAxioms") =
+    forAll: (seq: Sequence[Int], p: Int => Boolean) =>
+      (seq, p) match
+        case (Nil(), p) => filter(Nil())(p) == Nil()
+        case (Cons(h, t), p) if p(h) => filter(Cons(h, t))(p) == Cons(h, filter(t)(p))
+        case (Cons(h, t), p) => filter(Cons(h, t))(p) == filter(t)(p)
+
+  property("sumAxioms") =
+    forAll: (seq: Sequence[Int]) =>
+      seq match
+        case Cons(head, tail) => sum(Cons(head, tail)) == head + sum(tail)
+        case Nil() => sum(Nil()) == 0
+
+  property("concatAxioms") =
+    forAll: (seq: Sequence[Int], seq2: Sequence[Int]) =>
+      (seq, seq2) match
+        case (Nil(), seq2) => concat(seq)(seq2) == seq2
+        case (Cons(h, t), seq2) => concat(seq)(seq2) == Cons(h, concat(t)(seq2))
+
+  property("flatMapAxioms") =
+    forAll: (seq: Sequence[Int], f: Int => Sequence[Int]) =>
+      (seq, f) match
+        case (Nil(), f) => flatMap(seq)(f) == Nil()
+        case (Cons(h, t), f) => flatMap(seq)(f) == concat(f(h))(t.flatMap(f))
+```
 
 ## ScalaCheck parameters
 - il numero di test che viene generato di default è 100
